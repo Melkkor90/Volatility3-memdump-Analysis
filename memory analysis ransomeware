@@ -1,0 +1,29 @@
+make sure kali is updated and python as well
+Site: https://github.com/volatilityfoundation/volatility3
+  git clone https://github.com/volatilityfoundation/volatility3.git
+    python3 vol.py -h (verify installation)
+-------------------------------------------------
+Now move the downloaded memory dum file that nneds analysis. Move it to the same folder where vol.py is located
+
+  python vol.py -f "Path to vmem file" windows.pslist
+    #here we find all windows PIDs and PPIDs. The most suspicious one is named @wannadecryptor
+
+  python vol.py -f "Path to vmem file" windows.pstree
+    #this will list parents and grandparents of processes. Here we can see that the Parent process ID of @wannadecryptor is or4qtckt.exe
+    #even without running this command, we were able to identify that this exe file was indeed the PPID of wannadecryptor because of the correlation they showed between the PID and PPID in the first command. Also, by analyzing the timestamp of the initial .exe file we came to that conclusion. This just corroborates the hypothesis
+
+  python vol.py -f "Path to vmem file" windows.psscan | grep 2732
+    #Here we are drilling down on the suspicious PID to find the process used to delete files. Which in this case was Taskdl.exe
+    #googling this service we see that it was a tool used by wannacry to remove temp files.
+    https://www.mandiant.com/resources/blog/wannacry-malware-profile
+
+  python vol.py -f "path to vmem file" cmdline
+    #Here we find the path where the malicious file was first executed. We match the name and PID. 
+    #in this case is under C:/users/Hacker/desktop/or4qtckt.exe 
+    
+  Malware used is Wannacry
+
+  The filename for the file with the ransomeware public key that was used to encrypt the private key can be found in public databases
+  https://www.mandiant.com/resources/blog/wannacry-malware-profile
+  #here we see that the encryptor file is 00000000.eky
+
